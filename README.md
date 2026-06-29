@@ -37,7 +37,7 @@ This repo includes `render.yaml` for a Render web service.
 4. Deploy the service.
 5. In Stripe Dashboard test mode, create a webhook endpoint:
    - URL: `https://your-render-url.onrender.com/api/stripe/webhook`
-   - Event: `checkout.session.completed`
+   - Event: `payment_intent.succeeded`
 6. Copy that endpoint's signing secret, `whsec_...`, into Render as `STRIPE_WEBHOOK_SECRET`.
 7. Redeploy or restart the Render service.
 
@@ -62,6 +62,6 @@ The blueprint mounts a 1 GB disk at `/var/data` so generated checkout links surv
 3. Submit the form and copy/open the generated `/checkout/[token]` buyer link.
 4. On the buyer page, review the summary and type the buyer name exactly in the purchase agreement signature field.
 5. Confirm the Stripe submit button is disabled until the signature matches.
-6. Start the embedded Stripe Checkout form and complete payment.
+6. Enter payment details, sign the purchase agreement, and submit payment.
 7. Confirm only the Stripe webhook marks the checkout link `paid`.
 8. Confirm buyer and internal confirmation entries are recorded in `data/store.json`.

@@ -30,6 +30,24 @@ export async function POST(req: Request) {
       }
     }
 
+    if (event.type === 'payment_intent.succeeded') {
+      const paymentIntent = event.data.object;
+      const metadata = paymentIntent.metadata || {};
+      const checkoutLinkToken = metadata.checkout_link_token;
+
+      if (checkoutLinkToken) {
+        const link = await getCheckoutLink(checkoutLinkToken);
+        if (!link || link.status === 'paid') return NextResponse.json({ received: true });
+        await markCheckoutLinkPaid(
+          checkoutLinkToken,
+          paymentIntent.id,
+          metadata.agreement_name || null,
+          paymentIntent.amount_received || paymentIntent.amount
+        );
+        return NextResponse.json({ received: true });
+      }
+    }
+
     return NextResponse.json({ received: true });
   } catch {
     return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });

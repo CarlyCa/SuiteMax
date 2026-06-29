@@ -19,6 +19,7 @@ export async function POST(req: Request) {
   const billingAddress2 = String(formData.get('billingAddress2') ?? '').trim();
   const billingCity = String(formData.get('billingCity') ?? '').trim();
   const billingState = String(formData.get('billingState') ?? '').trim();
+  const paymentIntentId = String(formData.get('paymentIntentId') ?? '').trim();
 
   const link = await getCheckoutLink(token);
   if (!link) return NextResponse.json({ error: 'Checkout link not found' }, { status: 404 });
@@ -40,26 +41,13 @@ export async function POST(req: Request) {
   }
 
   const stripe = getStripe();
-  const base = process.env.NEXT_PUBLIC_BASE_URL ?? `${url.protocol}//${url.host}`;
 
-  const session = await stripe.checkout.sessions.create({
-    mode: 'payment',
-    ui_mode: 'embedded_page',
-    customer_email: contactEmail || link.buyerEmail,
-    billing_address_collection: 'required',
-    phone_number_collection: { enabled: true },
-    return_url: `${base}/success?checkout_link=${link.token}&session_id={CHECKOUT_SESSION_ID}`,
-    line_items: [{
-      quantity: 1,
-      price_data: {
-        currency: 'usd',
-        unit_amount: link.priceCents,
-        product_data: {
-          name: `${link.suiteNumber} - ${link.eventName}`,
-          description: `${link.ticketCount} tickets, ${link.parkingPasses} parking passes`
-        }
-      }
-    }],
+  if (!paymentIntentId) {
+    return NextResponse.json({ error: 'Payment intent is required' }, { status: 400 });
+  }
+
+  await stripe.paymentIntents.update(paymentIntentId, {
+    receipt_email: contactEmail || link.buyerEmail,
     metadata: {
       checkout_link_token: link.token,
       checkout_link_id: link.id,
@@ -80,12 +68,8 @@ export async function POST(req: Request) {
     status: 'pending_payment',
     agreementName,
     acceptedAt: new Date().toISOString(),
-    stripeSessionId: session.id
+    stripeSessionId: paymentIntentId
   });
 
-  if (!session.client_secret) {
-    return NextResponse.json({ error: 'Stripe did not return an embedded checkout client secret' }, { status: 500 });
-  }
-
-  return NextResponse.json({ clientSecret: session.client_secret });
+  return NextResponse.json({ ok: true });
 }

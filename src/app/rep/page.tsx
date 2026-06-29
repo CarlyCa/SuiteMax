@@ -102,9 +102,9 @@ export default async function RepPage({ searchParams }: { searchParams: { create
 
           <div className="form-section">
             <h2>Buyer</h2>
-            <label>Buyer name<input name="buyerName" defaultValue="Jordan Avery" required /></label>
-            <label>Buyer email<input name="buyerEmail" type="email" defaultValue="jordan@example.com" required /></label>
-            <label>Company<input name="buyerCompany" defaultValue="Avery Partners" /></label>
+            <label>Buyer name<input name="buyerName" defaultValue="Carly Callans" required /></label>
+            <label>Buyer email<input name="buyerEmail" type="email" defaultValue="carly@example.com" required /></label>
+            <label>Company<input name="buyerCompany" defaultValue="Callans Partners" /></label>
             <label>Phone<input name="buyerPhone" defaultValue="704-555-0188" /></label>
           </div>
 

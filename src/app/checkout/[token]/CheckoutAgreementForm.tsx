@@ -1,7 +1,7 @@
 'use client';
 
-import { type FormEvent, useMemo, useState } from 'react';
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -17,11 +17,113 @@ type CheckoutAgreementFormProps = {
   amountLabel: string;
 };
 
-export function CheckoutAgreementForm({ buyerEmail, buyerName, buyerPhone, token, agreementTitle, amountLabel }: CheckoutAgreementFormProps) {
+type PaymentIntentState = {
+  clientSecret: string;
+  paymentIntentId: string;
+};
+
+export function CheckoutAgreementForm(props: CheckoutAgreementFormProps) {
+  const [intent, setIntent] = useState<PaymentIntentState | null>(null);
+  const [intentError, setIntentError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function createPaymentIntent() {
+      if (!stripePromise) {
+        setIntentError('Stripe publishable key is missing. Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Render.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/stripe/payment-intent?token=${props.token}`, { method: 'POST' });
+        const payload = await response.json();
+
+        if (!active) return;
+
+        if (!response.ok) {
+          setIntentError(payload.error ?? 'Unable to load payment form.');
+          return;
+        }
+
+        setIntent({
+          clientSecret: payload.clientSecret,
+          paymentIntentId: payload.paymentIntentId
+        });
+      } catch {
+        if (active) setIntentError('Unable to load payment form. Please refresh and try again.');
+      }
+    }
+
+    createPaymentIntent();
+
+    return () => {
+      active = false;
+    };
+  }, [props.token]);
+
+  if (intentError) {
+    return (
+      <div className="embedded-checkout-form">
+        <section className="embedded-section payment-section">
+          <h2>Payment</h2>
+          <small className="form-warning">{intentError}</small>
+        </section>
+      </div>
+    );
+  }
+
+  if (!intent) {
+    return (
+      <div className="embedded-checkout-form">
+        <section className="embedded-section payment-section">
+          <h2>Payment</h2>
+          <div className="stripe-handoff">
+            <div className="stripe-handoff-icon" aria-hidden="true">S</div>
+            <div>
+              <strong>Loading secure payment form</strong>
+              <p>Stripe is preparing the card entry fields for {props.amountLabel} USD.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <Elements
+      stripe={stripePromise}
+      options={{
+        clientSecret: intent.clientSecret,
+        appearance: {
+          theme: 'stripe',
+          variables: {
+            colorPrimary: '#00788c',
+            borderRadius: '4px',
+            fontFamily: 'Arial, Helvetica, sans-serif'
+          }
+        }
+      }}
+    >
+      <CheckoutPaymentForm {...props} paymentIntentId={intent.paymentIntentId} />
+    </Elements>
+  );
+}
+
+function CheckoutPaymentForm({
+  agreementTitle,
+  amountLabel,
+  buyerEmail,
+  buyerName,
+  buyerPhone,
+  paymentIntentId,
+  token
+}: CheckoutAgreementFormProps & { paymentIntentId: string }) {
+  const stripe = useStripe();
+  const elements = useElements();
   const [typedName, setTypedName] = useState('');
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isStartingPayment, setIsStartingPayment] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const signed = useMemo(
     () => typedName.trim().toLowerCase() === buyerName.trim().toLowerCase(),
     [buyerName, typedName]
@@ -29,33 +131,54 @@ export function CheckoutAgreementForm({ buyerEmail, buyerName, buyerPhone, token
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!signed || isStartingPayment || clientSecret) return;
+    if (!signed || isSubmitting) return;
 
-    if (!stripePromise) {
-      setError('Stripe publishable key is missing. Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Render.');
+    if (!stripe || !elements) {
+      setError('Stripe is still loading. Please try again in a moment.');
       return;
     }
 
     setError(null);
-    setIsStartingPayment(true);
+    setIsSubmitting(true);
 
     try {
-      const response = await fetch(`/api/stripe/checkout-link?token=${token}`, {
-        method: 'POST',
-        body: new FormData(event.currentTarget)
-      });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        setError(payload.error ?? 'Unable to start Stripe checkout.');
+      const submitResult = await elements.submit();
+      if (submitResult.error) {
+        setError(submitResult.error.message ?? 'Please check your payment details.');
         return;
       }
 
-      setClientSecret(payload.clientSecret);
+      const formData = new FormData(event.currentTarget);
+      formData.set('paymentIntentId', paymentIntentId);
+
+      const agreementResponse = await fetch(`/api/stripe/checkout-link?token=${token}`, {
+        method: 'POST',
+        body: formData
+      });
+      const agreementPayload = await agreementResponse.json();
+
+      if (!agreementResponse.ok) {
+        setError(agreementPayload.error ?? 'Unable to accept agreement before payment.');
+        return;
+      }
+
+      const returnUrl = `${window.location.origin}/success?checkout_link=${token}&payment_intent=${paymentIntentId}`;
+      const confirmResult = await stripe.confirmPayment({
+        elements,
+        confirmParams: { return_url: returnUrl },
+        redirect: 'if_required'
+      });
+
+      if (confirmResult.error) {
+        setError(confirmResult.error.message ?? 'Payment could not be completed.');
+        return;
+      }
+
+      window.location.href = returnUrl;
     } catch {
-      setError('Unable to start Stripe checkout. Please try again.');
+      setError('Unable to complete payment. Please try again.');
     } finally {
-      setIsStartingPayment(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -118,6 +241,23 @@ export function CheckoutAgreementForm({ buyerEmail, buyerName, buyerPhone, token
         </label>
       </section>
 
+      <section className="embedded-section payment-section">
+        <h2>Payment</h2>
+        <div className="embedded-stripe-panel payment-element-panel">
+          <PaymentElement
+            options={{
+              defaultValues: {
+                billingDetails: {
+                  name: buyerName,
+                  email: buyerEmail,
+                  phone: buyerPhone ?? undefined
+                }
+              }
+            }}
+          />
+        </div>
+      </section>
+
       <section className="embedded-section embedded-purchase-section">
         <h2>Purchase Agreement</h2>
         <p>Please view the {agreementTitle} by clicking the link below, then type your full name to indicate your acceptance of these terms.</p>
@@ -140,34 +280,17 @@ export function CheckoutAgreementForm({ buyerEmail, buyerName, buyerPhone, token
         </label>
       </section>
 
-      <section className="embedded-section payment-section">
-        <h2>Payment</h2>
-        {!clientSecret ? (
-          <div className="stripe-handoff">
-            <div className="stripe-handoff-icon" aria-hidden="true">S</div>
-            <div>
-              <strong>Secure Stripe checkout</strong>
-              <p>Type your name above to accept the agreement, then start the embedded payment form for {amountLabel} USD.</p>
-            </div>
+      <section className="embedded-submit-section">
+        <p>Click below to submit {amountLabel} USD payment to Hornets Sports &amp; Entertainment.</p>
+        <div className="embedded-submit-row">
+          <button className="embedded-submit-payment-button" type="submit" disabled={!signed || isSubmitting || !stripe || !elements}>
+            <span aria-hidden="true">▣</span> {isSubmitting ? 'Submitting Payment' : 'Submit Payment'}
+          </button>
+          <div className="secure-badge">
+            <span className="secure-lock">✓</span>
+            <span><strong>Secure</strong><small>256-bit SSL encryption</small></span>
           </div>
-        ) : null}
-        {!clientSecret ? (
-          <div className="embedded-submit-row">
-            <button className="embedded-submit-payment-button" type="submit" disabled={!signed || isStartingPayment}>
-              <span aria-hidden="true">▣</span> {isStartingPayment ? 'Starting Payment' : 'Start Payment'}
-            </button>
-            <div className="secure-badge">
-              <span className="secure-lock">✓</span>
-              <span><strong>Secure</strong><small>256-bit SSL encryption</small></span>
-            </div>
-          </div>
-        ) : (
-          <div className="embedded-stripe-panel">
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
-              <EmbeddedCheckout />
-            </EmbeddedCheckoutProvider>
-          </div>
-        )}
+        </div>
         {typedName && !signed ? <small className="form-warning">Name must match {buyerName}.</small> : null}
         {error ? <small className="form-warning">{error}</small> : null}
       </section>

@@ -1035,6 +1035,11 @@ dd {
   padding: 8px 0;
 }
 
+.payment-element-panel {
+  min-height: 260px;
+  padding: 16px;
+}
+
 .checkout-side {
   display: grid;
   gap: 18px;
