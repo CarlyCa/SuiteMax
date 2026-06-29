@@ -22,6 +22,21 @@ type PaymentIntentState = {
   paymentIntentId: string;
 };
 
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { error: text };
+  }
+}
+
 export function CheckoutAgreementForm(props: CheckoutAgreementFormProps) {
   const [intent, setIntent] = useState<PaymentIntentState | null>(null);
   const [intentError, setIntentError] = useState<string | null>(null);
@@ -37,7 +52,7 @@ export function CheckoutAgreementForm(props: CheckoutAgreementFormProps) {
 
       try {
         const response = await fetch(`/api/stripe/payment-intent?token=${props.token}`, { method: 'POST' });
-        const payload = await response.json();
+        const payload = await readJsonResponse(response);
 
         if (!active) return;
 
@@ -50,8 +65,8 @@ export function CheckoutAgreementForm(props: CheckoutAgreementFormProps) {
           clientSecret: payload.clientSecret,
           paymentIntentId: payload.paymentIntentId
         });
-      } catch {
-        if (active) setIntentError('Unable to load payment form. Please refresh and try again.');
+      } catch (error) {
+        if (active) setIntentError(errorMessage(error, 'Unable to load payment form. Please refresh and try again.'));
       }
     }
 
@@ -155,7 +170,7 @@ function CheckoutPaymentForm({
         method: 'POST',
         body: formData
       });
-      const agreementPayload = await agreementResponse.json();
+      const agreementPayload = await readJsonResponse(agreementResponse);
 
       if (!agreementResponse.ok) {
         setError(agreementPayload.error ?? 'Unable to accept agreement before payment.');
@@ -175,8 +190,8 @@ function CheckoutPaymentForm({
       }
 
       window.location.href = returnUrl;
-    } catch {
-      setError('Unable to complete payment. Please try again.');
+    } catch (error) {
+      setError(errorMessage(error, 'Unable to complete payment. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
