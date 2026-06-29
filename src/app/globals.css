@@ -48,18 +48,19 @@ textarea {
 .site-header {
   background: var(--purple-deep);
   color: white;
+  border-top: 5px solid #6f3fa5;
 }
 
 .utility-nav {
   align-items: center;
   display: flex;
-  gap: 28px;
-  min-height: 42px;
-  padding: 0 40px;
+  gap: 24px;
+  min-height: 36px;
+  padding: 0 32px;
   background: var(--black);
   color: #d9dde2;
   font-family: var(--font-stainless);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 900;
   text-transform: uppercase;
 }
@@ -70,45 +71,45 @@ textarea {
   border-bottom: 4px solid var(--teal);
   display: flex;
   justify-content: space-between;
-  min-height: 204px;
-  padding: 20px 40px 18px 28px;
+  min-height: 136px;
+  padding: 18px 28px 16px 24px;
 }
 
 .team-brand {
   align-items: center;
   display: inline-flex;
-  gap: 34px;
+  gap: 26px;
   min-width: 0;
 }
 
 .brand-mark {
   align-items: center;
   background: var(--teal);
-  border: 8px solid white;
+  border: 6px solid white;
   border-radius: 50%;
-  box-shadow: 0 0 0 10px var(--silver);
+  box-shadow: 0 0 0 7px var(--silver);
   display: inline-flex;
   flex: 0 0 auto;
   font-family: var(--font-stainless);
-  font-size: 36px;
+  font-size: 28px;
   font-weight: 900;
-  height: 128px;
+  height: 92px;
   justify-content: center;
   letter-spacing: 0;
   line-height: 1;
-  width: 128px;
+  width: 92px;
 }
 
 .brand-copy {
   display: grid;
-  gap: 22px;
+  gap: 13px;
   min-width: 0;
 }
 
 .team-brand strong {
   display: block;
   font-family: var(--font-stainless);
-  font-size: clamp(56px, 6vw, 94px);
+  font-size: clamp(42px, 4.9vw, 68px);
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1;
@@ -119,7 +120,7 @@ textarea {
   color: #d7f8ff;
   display: block;
   font-family: var(--font-stainless);
-  font-size: clamp(24px, 2.8vw, 40px);
+  font-size: clamp(20px, 2.3vw, 31px);
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -135,10 +136,10 @@ textarea {
 .team-links a {
   border-left: 1px solid rgba(255, 255, 255, 0.18);
   font-family: var(--font-stainless);
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 900;
-  min-height: 60px;
-  padding: 21px 24px 0;
+  min-height: 48px;
+  padding: 17px 20px 0;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -794,11 +795,10 @@ dd {
 
 .checkout-title-bar {
   background: var(--purple-deep);
-  border-top: 8px solid #06439b;
   color: #fff;
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 900;
-  padding: 16px 32px;
+  padding: 15px 32px;
   text-align: center;
   text-transform: uppercase;
 }
@@ -1116,21 +1116,21 @@ dd {
   .team-nav {
     align-items: flex-start;
     display: grid;
-    gap: 18px;
+    gap: 14px;
     min-height: auto;
-    padding: 18px 16px 16px;
+    padding: 16px;
   }
 
   .team-brand {
-    gap: 20px;
+    gap: 18px;
   }
 
   .brand-mark {
     border-width: 5px;
     box-shadow: 0 0 0 6px var(--silver);
-    font-size: 22px;
-    height: 76px;
-    width: 76px;
+    font-size: 20px;
+    height: 70px;
+    width: 70px;
   }
 
   .brand-copy {
@@ -1138,11 +1138,11 @@ dd {
   }
 
   .team-brand strong {
-    font-size: clamp(34px, 12vw, 52px);
+    font-size: clamp(31px, 11vw, 48px);
   }
 
   .team-brand small {
-    font-size: clamp(18px, 6vw, 26px);
+    font-size: clamp(16px, 5.5vw, 24px);
   }
 
   .team-links {
