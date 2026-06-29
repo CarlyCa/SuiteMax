@@ -1,0 +1,29 @@
+{
+  "name": "suitemax-poc",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo 'No automated tests yet; run manual test path in README'",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "stripe": "^22.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.6",
+    "typescript": "^6.0.3"
+  }
+}

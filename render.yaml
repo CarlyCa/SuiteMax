@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: suitemax-hornets-checkout
+    runtime: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: NEXT_PUBLIC_BASE_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: suitemax-data
+      mountPath: /var/data
+      sizeGB: 1
