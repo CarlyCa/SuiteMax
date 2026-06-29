@@ -246,6 +246,19 @@ function CheckoutPaymentForm({
         <div className="embedded-stripe-panel payment-element-panel">
           <PaymentElement
             options={{
+              business: { name: 'Hornets Premium Suites' },
+              layout: {
+                type: 'accordion',
+                defaultCollapsed: false,
+                radios: 'never',
+                spacedAccordionItems: false
+              },
+              paymentMethodOrder: ['card'],
+              wallets: {
+                applePay: 'never',
+                googlePay: 'never',
+                link: 'never'
+              },
               defaultValues: {
                 billingDetails: {
                   name: buyerName,

@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const paymentIntent = await stripe.paymentIntents.create({
     amount: link.priceCents,
     currency: 'usd',
-    automatic_payment_methods: { enabled: true },
+    payment_method_types: ['card'],
     description: `${link.suiteNumber} - ${link.eventName}`,
     receipt_email: link.buyerEmail,
     metadata: {
