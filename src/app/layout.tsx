@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </span>
             </a>
             <div className="team-links">
-              <a href="https://www.nba.com/hornets/tickets">Premium Suites</a>
+              <a href="https://www.hornetspremium.com/">Explore Suites</a>
               <a href="https://www.nba.com/hornets/tickets">Tickets</a>
               <a href="https://www.nba.com/hornets/schedule">Schedule</a>
               <a href="https://www.nba.com/hornets/">Hornets.com</a>
