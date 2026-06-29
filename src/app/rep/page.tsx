@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { dollarsToCents, formatCurrency, formatEventDate, newCheckoutToken } from '@/lib/checkout-links';
+import { sendPaymentConfirmationEmails } from '@/lib/email';
 import { hornetsSuiteLocationGroups } from '@/lib/hornets-suite-locations';
-import { createCheckoutLink as saveCheckoutLink, getCheckoutLink, listRecentCheckoutLinks } from '@/lib/store';
+import { getStripe } from '@/lib/stripe';
+import { CheckoutLinkRecord, createCheckoutLink as saveCheckoutLink, getCheckoutLink, listRecentCheckoutLinks, markCheckoutLinkPaid } from '@/lib/store';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,12 +45,52 @@ async function createCheckoutLink(formData: FormData) {
   redirect(`/rep?created=${link.token}`);
 }
 
+async function reconcilePaidLinks(links: CheckoutLinkRecord[]) {
+  let stripe: ReturnType<typeof getStripe>;
+
+  try {
+    stripe = getStripe();
+  } catch {
+    return links;
+  }
+
+  return Promise.all(links.map(async (link) => {
+    if (link.status !== 'pending_payment' || !link.stripeSessionId?.startsWith('pi_')) return link;
+
+    try {
+      const paymentIntent = await stripe.paymentIntents.retrieve(link.stripeSessionId);
+      if (paymentIntent.status !== 'succeeded') return link;
+
+      const amountCents = paymentIntent.amount_received || paymentIntent.amount || link.priceCents;
+      const paidLink = await markCheckoutLinkPaid(
+        link.token,
+        paymentIntent.id,
+        paymentIntent.metadata?.agreement_name || null,
+        amountCents
+      );
+
+      if (paidLink) {
+        await sendPaymentConfirmationEmails({
+          link: paidLink,
+          amountCents,
+          paymentId: paymentIntent.id
+        }).catch((error) => console.error(error));
+        return paidLink;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return link;
+  }));
+}
+
 export default async function RepPage({ searchParams }: { searchParams: { created?: string } }) {
   const created = searchParams.created
     ? await getCheckoutLink(searchParams.created)
     : null;
 
-  const recentLinks = await listRecentCheckoutLinks(8);
+  const recentLinks = await reconcilePaidLinks(await listRecentCheckoutLinks(8));
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
 
@@ -93,7 +135,7 @@ export default async function RepPage({ searchParams }: { searchParams: { create
               </select>
             </label>
             <div className="two-col">
-              <label>Price<input name="price" inputMode="decimal" defaultValue="8500" required /></label>
+              <label>Price<input name="price" inputMode="decimal" defaultValue="1" required /></label>
               <label>Tickets<input name="ticketCount" type="number" min="1" defaultValue="16" required /></label>
             </div>
             <label>Parking passes<input name="parkingPasses" type="number" min="0" defaultValue="4" required /></label>

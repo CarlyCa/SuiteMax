@@ -74,7 +74,7 @@ function defaultStore(): StoreData {
         ticketCount: 16,
         parkingPasses: 4,
         cateringDetails: "Includes non-alcoholic beverages, chef's table, snacks, and dessert display. Alcohol available on consumption.",
-        priceCents: 850000,
+        priceCents: 100,
         buyerName: 'Carly Callans',
         buyerEmail: 'carly@example.com',
         buyerCompany: 'Callans Partners',
