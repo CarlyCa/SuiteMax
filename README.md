@@ -12,6 +12,7 @@ Next.js App Router + TypeScript sandbox for a Charlotte Hornets rep-generated su
 ## Env vars
 
 - `NEXT_PUBLIC_BASE_URL` (default: `http://localhost:3000`)
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `DATA_DIR` (default: `./data`; use `/var/data` with a Render persistent disk)
@@ -30,6 +31,7 @@ This repo includes `render.yaml` for a Render web service.
 2. In Render, choose **New → Blueprint** and select this repo.
 3. Set these environment variables:
    - `NEXT_PUBLIC_BASE_URL`: your Render URL, for example `https://suitemax-hornets-checkout.onrender.com`
+   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: your Stripe test publishable key, `pk_test_...`
    - `STRIPE_SECRET_KEY`: your Stripe test key, `sk_test_...`
    - `STRIPE_WEBHOOK_SECRET`: add this after creating the Stripe webhook endpoint
 4. Deploy the service.
@@ -43,7 +45,7 @@ The blueprint mounts a 1 GB disk at `/var/data` so generated checkout links surv
 
 ## Stripe test mode
 
-1. Set Stripe test key in `STRIPE_SECRET_KEY`.
+1. Set Stripe test keys in `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `STRIPE_SECRET_KEY`.
 2. Create a checkout link from `/rep` or open seeded demo link `/checkout/hornets-demo`.
 3. Use card `4242 4242 4242 4242`.
 
@@ -60,6 +62,6 @@ The blueprint mounts a 1 GB disk at `/var/data` so generated checkout links surv
 3. Submit the form and copy/open the generated `/checkout/[token]` buyer link.
 4. On the buyer page, review the summary and type the buyer name exactly in the purchase agreement signature field.
 5. Confirm the Stripe submit button is disabled until the signature matches.
-6. Continue to Stripe Checkout and complete payment.
+6. Start the embedded Stripe Checkout form and complete payment.
 7. Confirm only the Stripe webhook marks the checkout link `paid`.
 8. Confirm buyer and internal confirmation entries are recorded in `data/store.json`.

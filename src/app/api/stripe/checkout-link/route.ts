@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   if (!link) return NextResponse.json({ error: 'Checkout link not found' }, { status: 404 });
 
   if (link.status === 'paid') {
-    return NextResponse.redirect(`${url.protocol}//${url.host}/checkout/${link.token}`);
+    return NextResponse.json({ error: 'Checkout link is already paid' }, { status: 409 });
   }
 
   if (link.status === 'cancelled' || link.status === 'expired') {
@@ -44,11 +44,11 @@ export async function POST(req: Request) {
 
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
+    ui_mode: 'embedded_page',
     customer_email: contactEmail || link.buyerEmail,
     billing_address_collection: 'required',
     phone_number_collection: { enabled: true },
-    success_url: `${base}/success?checkout_link=${link.token}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/checkout/${link.token}`,
+    return_url: `${base}/success?checkout_link=${link.token}&session_id={CHECKOUT_SESSION_ID}`,
     line_items: [{
       quantity: 1,
       price_data: {
@@ -83,5 +83,9 @@ export async function POST(req: Request) {
     stripeSessionId: session.id
   });
 
-  return NextResponse.redirect(session.url as string, 303);
+  if (!session.client_secret) {
+    return NextResponse.json({ error: 'Stripe did not return an embedded checkout client secret' }, { status: 500 });
+  }
+
+  return NextResponse.json({ clientSecret: session.client_secret });
 }

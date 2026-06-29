@@ -1,6 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { type FormEvent, useMemo, useState } from 'react';
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 type CheckoutAgreementFormProps = {
   buyerName: string;
@@ -13,13 +19,48 @@ type CheckoutAgreementFormProps = {
 
 export function CheckoutAgreementForm({ buyerEmail, buyerName, buyerPhone, token, agreementTitle, amountLabel }: CheckoutAgreementFormProps) {
   const [typedName, setTypedName] = useState('');
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isStartingPayment, setIsStartingPayment] = useState(false);
   const signed = useMemo(
     () => typedName.trim().toLowerCase() === buyerName.trim().toLowerCase(),
     [buyerName, typedName]
   );
 
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!signed || isStartingPayment || clientSecret) return;
+
+    if (!stripePromise) {
+      setError('Stripe publishable key is missing. Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY in Render.');
+      return;
+    }
+
+    setError(null);
+    setIsStartingPayment(true);
+
+    try {
+      const response = await fetch(`/api/stripe/checkout-link?token=${token}`, {
+        method: 'POST',
+        body: new FormData(event.currentTarget)
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        setError(payload.error ?? 'Unable to start Stripe checkout.');
+        return;
+      }
+
+      setClientSecret(payload.clientSecret);
+    } catch {
+      setError('Unable to start Stripe checkout. Please try again.');
+    } finally {
+      setIsStartingPayment(false);
+    }
+  }
+
   return (
-    <form action={`/api/stripe/checkout-link?token=${token}`} method="POST" className="embedded-checkout-form">
+    <form onSubmit={handleSubmit} className="embedded-checkout-form">
       <input type="hidden" name="agreementAccepted" value={signed ? 'on' : ''} />
 
       <section className="embedded-section">
@@ -77,54 +118,6 @@ export function CheckoutAgreementForm({ buyerEmail, buyerName, buyerPhone, token
         </label>
       </section>
 
-      <section className="embedded-section payment-section">
-        <h2>Payment</h2>
-        <div className="embedded-payment-methods">
-          <button className="embedded-payment-method active" type="button">
-            <span className="card-icon">▰</span>
-            <strong>Card</strong>
-          </button>
-          <button className="embedded-payment-method" type="button">
-            <span className="gpay-pill">G Pay</span>
-            <strong>Google Pay</strong>
-          </button>
-        </div>
-
-        <div className="embedded-link-row-secure">
-          <span className="lock-icon">▣</span>
-          <span>Secure, fast checkout with Link</span>
-          <span className="chevron">⌄</span>
-        </div>
-
-        <div className="embedded-payment-fields">
-          <label className="field-full">
-            Card number
-            <div className="card-number-shell">
-              <input placeholder="1234 1234 1234 1234" />
-              <span className="card-brands">VISA MC AMEX DISC</span>
-            </div>
-          </label>
-          <label>
-            Expiration date
-            <input placeholder="MM / YY" />
-          </label>
-          <label>
-            Security code
-            <input placeholder="CVC" />
-          </label>
-          <label>
-            Country
-            <select defaultValue="United States">
-              <option>United States</option>
-            </select>
-          </label>
-          <label>
-            ZIP code
-            <input placeholder="12345" />
-          </label>
-        </div>
-      </section>
-
       <section className="embedded-section embedded-purchase-section">
         <h2>Purchase Agreement</h2>
         <p>Please view the {agreementTitle} by clicking the link below, then type your full name to indicate your acceptance of these terms.</p>
@@ -147,18 +140,36 @@ export function CheckoutAgreementForm({ buyerEmail, buyerName, buyerPhone, token
         </label>
       </section>
 
-      <section className="embedded-submit-section">
-        <p>Click below to submit {amountLabel} USD payment to Hornets Sports &amp; Entertainment.</p>
-        <div className="embedded-submit-row">
-          <button className="embedded-submit-payment-button" type="submit" disabled={!signed}>
-            <span aria-hidden="true">▣</span> Submit Payment
-          </button>
-          <div className="secure-badge">
-            <span className="secure-lock">✓</span>
-            <span><strong>Secure</strong><small>256-bit SSL encryption</small></span>
+      <section className="embedded-section payment-section">
+        <h2>Payment</h2>
+        {!clientSecret ? (
+          <div className="stripe-handoff">
+            <div className="stripe-handoff-icon" aria-hidden="true">S</div>
+            <div>
+              <strong>Secure Stripe checkout</strong>
+              <p>Type your name above to accept the agreement, then start the embedded payment form for {amountLabel} USD.</p>
+            </div>
           </div>
-        </div>
+        ) : null}
+        {!clientSecret ? (
+          <div className="embedded-submit-row">
+            <button className="embedded-submit-payment-button" type="submit" disabled={!signed || isStartingPayment}>
+              <span aria-hidden="true">▣</span> {isStartingPayment ? 'Starting Payment' : 'Start Payment'}
+            </button>
+            <div className="secure-badge">
+              <span className="secure-lock">✓</span>
+              <span><strong>Secure</strong><small>256-bit SSL encryption</small></span>
+            </div>
+          </div>
+        ) : (
+          <div className="embedded-stripe-panel">
+            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+          </div>
+        )}
         {typedName && !signed ? <small className="form-warning">Name must match {buyerName}.</small> : null}
+        {error ? <small className="form-warning">{error}</small> : null}
       </section>
     </form>
   );

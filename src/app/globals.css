@@ -890,6 +890,45 @@ dd {
   font-size: 13px;
 }
 
+.stripe-handoff {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #d5dae2;
+  border-radius: 6px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 14px;
+}
+
+.stripe-handoff-icon {
+  align-items: center;
+  background: #635bff;
+  border-radius: 6px;
+  color: white;
+  display: inline-flex;
+  font-size: 18px;
+  font-weight: 900;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.stripe-handoff strong {
+  color: #20232b;
+  display: block;
+  font-size: 14px;
+  line-height: 1.2;
+  margin-bottom: 3px;
+}
+
+.stripe-handoff p {
+  color: #4e5562;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
 .embedded-link-row-secure {
   align-items: center;
   color: #0668ff;
@@ -967,6 +1006,15 @@ dd {
   border-color: #9aa8bd;
   color: #8a96a8;
   cursor: not-allowed;
+}
+
+.embedded-stripe-panel {
+  background: #fff;
+  border: 1px solid #d8dbe0;
+  border-radius: 7px;
+  min-height: 560px;
+  overflow: hidden;
+  padding: 8px 0;
 }
 
 .checkout-side {
@@ -1139,9 +1187,12 @@ dd {
   .purchase-section p,
   .checkout-submit-section p,
   .agreement-link,
-  .payment-fields label,
-  .signature-label {
+  .payment-fields label {
     font-size: 20px;
+  }
+
+  .embedded-checkout-form .signature-label {
+    font-size: 12px;
   }
 
   .card-number-shell input {
