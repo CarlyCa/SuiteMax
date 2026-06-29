@@ -791,7 +791,7 @@ dd {
 }
 
 .embedded-checkout-form {
-  background: #fff;
+  background: transparent;
   display: grid;
   gap: 30px;
 }
