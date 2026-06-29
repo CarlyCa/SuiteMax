@@ -276,7 +276,9 @@ function CheckoutPaymentForm({
         <p>Please view the {agreementTitle} by clicking the link below, then type your full name to indicate your acceptance of these terms.</p>
         <a
           className="agreement-link"
-          href="#purchase-agreement"
+          href="https://www.ramssuites.com/purchase-agreement/?uid=5645203&persistUserId=tm686f5d8701685166"
+          rel="noreferrer"
+          target="_blank"
         >
           View the {agreementTitle} <span aria-hidden="true">↗</span>
         </a>
