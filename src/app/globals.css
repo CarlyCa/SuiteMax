@@ -1043,6 +1043,17 @@ dd {
   margin: 0 0 8px;
 }
 
+.success-summary {
+  margin-top: 22px;
+}
+
+.success-summary h2 {
+  font-size: 18px;
+  line-height: 1.2;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+}
+
 .summary-card p,
 .summary-card small,
 .questions-card p,
