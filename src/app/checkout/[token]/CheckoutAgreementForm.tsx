@@ -183,7 +183,13 @@ function CheckoutPaymentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="embedded-checkout-form">
+    <form
+      onSubmit={handleSubmit}
+      className="embedded-checkout-form"
+      data-1p-ignore
+      data-lpignore="true"
+      data-form-type="other"
+    >
       <input type="hidden" name="agreementAccepted" value={signed ? 'on' : ''} />
 
       <section className="embedded-section">
