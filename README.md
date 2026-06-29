@@ -15,6 +15,9 @@ Next.js App Router + TypeScript sandbox for a Charlotte Hornets rep-generated su
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `RESEND_API_KEY` (optional; required for actual confirmation emails)
+- `RESEND_FROM_EMAIL` (optional; required for actual confirmation emails)
+- `INTERNAL_CONFIRMATION_EMAIL` (optional; defaults to the rep email)
 - `DATA_DIR` (default: `./data`; use `/var/data` with a Render persistent disk)
 
 ## Local data
@@ -34,6 +37,9 @@ This repo includes `render.yaml` for a Render web service.
    - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`: your Stripe test publishable key, `pk_test_...`
    - `STRIPE_SECRET_KEY`: your Stripe test key, `sk_test_...`
    - `STRIPE_WEBHOOK_SECRET`: add this after creating the Stripe webhook endpoint
+   - `RESEND_API_KEY`: your Resend API key
+   - `RESEND_FROM_EMAIL`: verified sender, for example `Hornets Premium Suites <checkout@yourdomain.com>`
+   - `INTERNAL_CONFIRMATION_EMAIL`: optional shared internal recipient
 4. Deploy the service.
 5. In Stripe Dashboard test mode, create a webhook endpoint:
    - URL: `https://your-render-url.onrender.com/api/stripe/webhook`
@@ -65,3 +71,4 @@ The blueprint mounts a 1 GB disk at `/var/data` so generated checkout links surv
 6. Enter payment details, sign the purchase agreement, and submit payment.
 7. Confirm only the Stripe webhook marks the checkout link `paid`.
 8. Confirm buyer and internal confirmation entries are recorded in `data/store.json`.
+9. If Resend is configured, confirm the purchaser and internal team receive payment confirmation emails.

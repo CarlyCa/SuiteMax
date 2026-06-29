@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { sendPaymentConfirmationEmails } from '@/lib/email';
 import { getStripe } from '@/lib/stripe';
 import { getCheckoutLink, markCheckoutLinkPaid } from '@/lib/store';
 
@@ -25,7 +26,14 @@ export async function POST(req: Request) {
       if (checkoutLinkToken) {
         const link = await getCheckoutLink(checkoutLinkToken);
         if (!link || link.status === 'paid') return NextResponse.json({ received: true });
-        await markCheckoutLinkPaid(checkoutLinkToken, session.id, metadata.agreement_name || null, session.amount_total ?? link.priceCents);
+        const paidLink = await markCheckoutLinkPaid(checkoutLinkToken, session.id, metadata.agreement_name || null, session.amount_total ?? link.priceCents);
+        if (paidLink) {
+          await sendPaymentConfirmationEmails({
+            link: paidLink,
+            amountCents: session.amount_total ?? link.priceCents,
+            paymentId: session.id
+          }).catch((error) => console.error(error));
+        }
         return NextResponse.json({ received: true });
       }
     }
@@ -38,12 +46,20 @@ export async function POST(req: Request) {
       if (checkoutLinkToken) {
         const link = await getCheckoutLink(checkoutLinkToken);
         if (!link || link.status === 'paid') return NextResponse.json({ received: true });
-        await markCheckoutLinkPaid(
+        const amountCents = paymentIntent.amount_received || paymentIntent.amount;
+        const paidLink = await markCheckoutLinkPaid(
           checkoutLinkToken,
           paymentIntent.id,
           metadata.agreement_name || null,
-          paymentIntent.amount_received || paymentIntent.amount
+          amountCents
         );
+        if (paidLink) {
+          await sendPaymentConfirmationEmails({
+            link: paidLink,
+            amountCents,
+            paymentId: paymentIntent.id
+          }).catch((error) => console.error(error));
+        }
         return NextResponse.json({ received: true });
       }
     }

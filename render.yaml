@@ -16,6 +16,12 @@ services:
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: INTERNAL_CONFIRMATION_EMAIL
+        sync: false
       - key: DATA_DIR
         value: /var/data
     disk:
