@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,15 +16,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <span>Hornets Sports &amp; Entertainment</span>
           </div>
           <nav className="team-nav" aria-label="Charlotte Hornets checkout navigation">
-            <Link className="team-brand" href="/rep">
+            <a className="team-brand" href="https://www.nba.com/hornets/">
               <span className="brand-mark">CHA</span>
               <span className="brand-copy">
                 <strong>HORNETS</strong>
                 <small>PREMIUM SUITES</small>
               </span>
-            </Link>
+            </a>
             <div className="team-links">
-              <Link href="/rep">Premium Checkout</Link>
+              <a href="https://www.nba.com/hornets/tickets">Premium Suites</a>
               <a href="https://www.nba.com/hornets/tickets">Tickets</a>
               <a href="https://www.nba.com/hornets/schedule">Schedule</a>
               <a href="https://www.nba.com/hornets/">Hornets.com</a>

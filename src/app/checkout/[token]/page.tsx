@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { formatCurrency, formatEventDate, purchaseAgreementText } from '@/lib/checkout-links';
 import { getCheckoutLink } from '@/lib/store';
@@ -25,7 +24,7 @@ export default async function BuyerCheckoutPage({ params }: { params: { token: s
         <section className="paid-state rams-state">
           <h2>Payment Complete</h2>
           <p>This checkout link has been paid. Confirmation details were recorded for the buyer and internal team.</p>
-          <Link className="button secondary" href="/rep">Back to Rep Dashboard</Link>
+          <a className="button secondary" href="https://www.nba.com/hornets/">Return to Hornets.com</a>
         </section>
       ) : isClosed ? (
         <section className="paid-state rams-state">
