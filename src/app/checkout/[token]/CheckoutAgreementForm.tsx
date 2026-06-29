@@ -146,6 +146,7 @@ function CheckoutPaymentForm({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     if (!signed || isSubmitting) return;
 
     if (!stripe || !elements) {
@@ -163,7 +164,7 @@ function CheckoutPaymentForm({
         return;
       }
 
-      const formData = new FormData(event.currentTarget);
+      const formData = new FormData(form);
       formData.set('paymentIntentId', paymentIntentId);
 
       const agreementResponse = await fetch(`/api/stripe/checkout-link?token=${token}`, {
