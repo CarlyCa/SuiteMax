@@ -17,11 +17,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           <nav className="team-nav" aria-label="Charlotte Hornets checkout navigation">
             <a className="team-brand" href="https://www.nba.com/hornets/">
-              <span className="brand-mark">CHA</span>
-              <span className="brand-copy">
-                <strong>HORNETS</strong>
-                <small>PREMIUM SUITES</small>
-              </span>
+              <img
+                className="brand-logo"
+                src="https://cdn.nba.com/logos/nba/1610612766/primary/D/logo.svg"
+                alt="Charlotte Hornets"
+              />
+              <span className="brand-divider" aria-hidden="true" />
+              <span className="brand-label">Premium Suites</span>
             </a>
             <div className="team-links">
               <a href="https://www.hornetspremium.com/">Explore Suites</a>
